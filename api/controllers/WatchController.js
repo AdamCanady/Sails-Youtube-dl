@@ -7,11 +7,46 @@
 
 var youtubedl = require('youtube-dl');
 
+String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+
+/**
+ * Get hostname of request.
+ *
+ * @param (object} req
+ * @return {string}
+ * @api private
+ */
+
+function hostnameof(req){
+  var host = req.headers.host
+
+  if (!host) {
+    return
+  }
+
+  var offset = host[0] === '['
+    ? host.indexOf(']') + 1
+    : 0
+  var index = host.indexOf(':', offset)
+
+  return index !== -1
+    ? host.substring(0, index)
+    : host
+}
+
 module.exports = {
   watch: function(req, res){
     var id = req.query.v;
+    var host = hostnameof(req);
 
-    var video = youtubedl('http://www.youtube.com/watch?v='+id);
+    var options = [];
+
+    if(host.contains("audio")){
+      options.push("--extract-audio");
+      options.push("--audio-format=mp3");
+    }
+
+    var video = youtubedl('http://www.youtube.com/watch?v='+id, options);
      
     // Will be called when the download starts. 
     video.on('info', function(info) {
